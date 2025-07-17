@@ -21,14 +21,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeModule }) => {
         return <MemberManagement />;
       case "trainers":
         return <TrainerManagement />;
-      case "classes":
-        return <ClassManagement />;
       case "payments":
         return <PaymentManagement />;
-      case "attendance":
-        return <AttendanceManagement />;
-      case "reports":
-        return <ReportsManagement />;
       case "settings":
         return <SettingsManagement />;
       default:

@@ -56,5 +56,10 @@ public class MemberController {
         return memberService.getMemberById(Long.parseLong(memberId));
     }
 
+    @GetMapping("/getMemberByEmail/{email}")
+    public Member getMemberByEmail(@PathVariable String email) {
+        System.out.println(email);
+        return memberService.getMemberByEmail(email);
+    }
 
 }

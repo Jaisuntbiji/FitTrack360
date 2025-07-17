@@ -28,6 +28,9 @@ public class PaymentService {
     @Autowired
     MemberShipRepository memberShipRepository;
 
+
+
+
     public boolean addPayement(Member member) {
         if(member != null){
             List<MemberShip> memberShipes = memberShipRepository.findAll();
@@ -62,4 +65,7 @@ public class PaymentService {
         return paymentOverview;
     }
 
+    public List<Payment> getPayementList() {
+        return paymentRepository.findAll();
+    }
 }

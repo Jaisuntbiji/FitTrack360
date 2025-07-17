@@ -22,33 +22,25 @@ const Sidebar: React.FC<SidebarProps> = ({
   setActiveModule,
 }) => {
   const getMenuItems = () => {
-    const baseItems = [
-      { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    ];
-
     if (userRole === "admin") {
       return [
-        ...baseItems,
+        { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
         { id: "members", label: "Members", icon: Users },
         { id: "trainers", label: "Trainers", icon: UserCheck },
-        { id: "classes", label: "Classes", icon: Calendar },
         { id: "payments", label: "Payments", icon: CreditCard },
-        { id: "attendance", label: "Attendance", icon: BarChart3 },
-        { id: "reports", label: "Reports", icon: BarChart3 },
         { id: "settings", label: "Settings", icon: Settings },
       ];
     } else if (userRole === "trainer") {
       return [
-        ...baseItems,
+        { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
         { id: "schedule", label: "My Schedule", icon: Calendar },
         { id: "members", label: "My Members", icon: Users },
         { id: "attendance", label: "Attendance", icon: BarChart3 },
       ];
     } else {
       return [
-        ...baseItems,
+        { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
         { id: "membership", label: "Membership", icon: Users },
-        { id: "classes", label: "Classes", icon: Calendar },
         { id: "payments", label: "Payments", icon: CreditCard },
       ];
     }

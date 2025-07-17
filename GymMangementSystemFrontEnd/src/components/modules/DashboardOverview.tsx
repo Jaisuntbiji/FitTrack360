@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useData } from "../../contexts/DataContext";
+import { Member, useData } from "../../contexts/DataContext";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   Users,
   UserCheck,
@@ -24,24 +25,42 @@ interface DashboardOverviewProps {
 }
 
 const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
-  const { members, trainers, classes, payments } = useData();
+  // const { members, trainers, classes, payments } = useData();
   const [apiStats, setApiStats] = useState<ApiStats | null>(null);
 
+  const { user } = useAuth();
+  const [memberData, setMemberData] = useState<any>(null);
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get(
-          "http://localhost:8080/api/dashboadOverview"
-        );
-        setApiStats(res.data);
-      } catch (error) {
-        console.error("Failed to fetch dashboard overview:", error);
+    const fetchDashboardData = async () => {
+      if (!user || !user.userEmail) return;
+
+      if (userRole === "admin") {
+        try {
+          const res = await axios.get(
+            "http://localhost:8080/api/dashboadOverview"
+          );
+          setApiStats(res.data);
+        } catch (error) {
+          console.error("Failed to fetch dashboard overview:", error);
+        }
+      }
+
+      if (userRole === "member") {
+        try {
+          const res = await axios.get(
+            `http://localhost:8080/api/getMemberByEmail/${user.userEmail}`
+          );
+          console.log(res.data);
+          setMemberData(res.data);
+        } catch (error) {
+          console.error("Failed to fetch member data by email:", error);
+        }
       }
     };
 
-    fetchData();
-  }, []);
-
+    fetchDashboardData();
+  }, [userRole, user]);
   const getStats = () => {
     if (userRole === "admin") {
       return [
@@ -78,7 +97,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
       return [
         {
           title: "My Members",
-          value: members.filter((m) => m.trainerId === "1").length,
+          value: "",
           icon: Users,
           color: "bg-blue-500",
           change: "+3",
@@ -109,28 +128,34 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
       return [
         {
           title: "Membership Status",
-          value: "Active",
+          value: memberData?.membershipStatus || "Loading...",
           icon: CheckCircle2,
           color: "bg-green-500",
-          change: "10 days left",
+          change: `${memberData?.daysLeft ?? "..."} days left`,
         },
         {
           title: "Classes Attended",
-          value: 24,
+          value: memberData?.classesAttended || 0,
           icon: Calendar,
           color: "bg-blue-500",
           change: "This month",
         },
         {
           title: "Next Payment",
-          value: "$150",
+          value: memberData?.nextPaymentAmount
+            ? `$${memberData.nextPaymentAmount}`
+            : "$0",
           icon: CreditCard,
           color: "bg-orange-500",
-          change: "Due Dec 1",
+          change: memberData?.nextPaymentDue
+            ? `Due ${new Date(memberData.nextPaymentDue).toLocaleDateString()}`
+            : "Due soon",
         },
         {
           title: "Fitness Goal",
-          value: "75%",
+          value: memberData?.fitnessProgress
+            ? `${memberData.fitnessProgress}%`
+            : "0%",
           icon: TrendingUp,
           color: "bg-purple-500",
           change: "Progress",

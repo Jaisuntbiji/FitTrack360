@@ -1,58 +1,85 @@
-import React, { useState } from 'react';
-import { useData, Payment } from '../../contexts/DataContext';
-import { CreditCard, Search, Filter, CheckCircle, Clock, AlertCircle, Plus } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import {
+  CreditCard,
+  Search,
+  Filter,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  Plus,
+} from "lucide-react";
+import { useData } from "../../contexts/DataContext";
+
+export interface Payment {
+  paymentId: number;
+  memberId: string;
+  payment_amount: number;
+  payment_type: string;
+  payment_status: "paid" | "pending" | "overdue";
+  payment_dueDate: string;
+  payment_paidDate?: string;
+}
 
 const PaymentManagement: React.FC = () => {
-  const { payments, members, addPayment, updatePayment } = useData();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [memberNames, setMemberNames] = useState<Record<string, string>>({});
+  const { updatePayment } = useData();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    memberId: '',
-    amount: 0,
-    type: '',
-    status: 'pending' as const,
-    dueDate: '',
+    memberId: "",
+    payment_amount: 0,
+    payment_type: "",
+    payment_status: "pending",
+    payment_dueDate: "",
   });
 
-  const filteredPayments = payments.filter(payment => {
-    const member = members.find(m => m.id === payment.memberId);
-    const memberName = member ? member.name.toLowerCase() : '';
-    const matchesSearch = memberName.includes(searchTerm.toLowerCase()) ||
-                         payment.type.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = selectedStatus === 'all' || payment.status === selectedStatus;
-    return matchesSearch && matchesStatus;
-  });
+  useEffect(() => {
+    fetchPayments();
+  }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    addPayment(formData);
-    resetForm();
+  const fetchPayments = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/listPayment");
+      setPayments(response.data);
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+    }
   };
 
-  const resetForm = () => {
-    setFormData({
-      memberId: '',
-      amount: 0,
-      type: '',
-      status: 'pending',
-      dueDate: '',
-    });
-    setIsModalOpen(false);
+  const fetchMemberName = async (memberId: string) => {
+    try {
+      if (!memberNames[memberId]) {
+        const response = await axios.get(
+          `http://localhost:8080/api/getMember/${memberId}`
+        );
+        const name = response.data?.memberName || "Unknown Member";
+        setMemberNames((prev) => ({ ...prev, [memberId]: name }));
+      }
+    } catch (error) {
+      console.error("Error fetching member name:", error);
+      setMemberNames((prev) => ({ ...prev, [memberId]: "Unknown Member" }));
+    }
   };
 
-  const getMemberName = (memberId: string) => {
-    const member = members.find(m => m.id === memberId);
-    return member ? member.name : 'Unknown Member';
+  const getMemberName = (memberId: string): string => {
+    if (memberNames[memberId]) {
+      return memberNames[memberId];
+    } else {
+      fetchMemberName(memberId);
+      return "Loading...";
+    }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'paid':
+      case "paid":
         return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case 'pending':
+      case "pending":
         return <Clock className="w-5 h-5 text-yellow-600" />;
-      case 'overdue':
+      case "overdue":
         return <AlertCircle className="w-5 h-5 text-red-600" />;
       default:
         return <Clock className="w-5 h-5 text-gray-600" />;
@@ -61,34 +88,54 @@ const PaymentManagement: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'paid':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'overdue':
-        return 'bg-red-100 text-red-800';
+      case "paid":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "overdue":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  const markAsPaid = (paymentId: string) => {
-    updatePayment(paymentId, { 
-      status: 'paid',
-      paidDate: new Date().toISOString().split('T')[0]
+  const markAsPaid = (paymentId: number) => {
+    updatePayment(String(paymentId), {
+      status: "paid",
+      paidDate: new Date().toISOString().split("T")[0],
     });
   };
 
-  const totalRevenue = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
-  const pendingAmount = payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
-  const overdueAmount = payments.filter(p => p.status === 'overdue').reduce((sum, p) => sum + p.amount, 0);
+  const filteredPayments = payments.filter((payment) => {
+    const memberName = getMemberName(payment.memberId).toLowerCase();
+    const matchesSearch =
+      memberName.includes(searchTerm.toLowerCase()) ||
+      (payment.payment_type?.toLowerCase() ?? "").includes(
+        searchTerm.toLowerCase()
+      );
+    const matchesStatus =
+      selectedStatus === "all" || payment.payment_status === selectedStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const totalRevenue = payments
+    .filter((p) => p.payment_status === "paid")
+    .reduce((sum, p) => sum + (p.payment_amount || 0), 0);
+  const pendingAmount = payments
+    .filter((p) => p.payment_status === "pending")
+    .reduce((sum, p) => sum + (p.payment_amount || 0), 0);
+  const overdueAmount = payments
+    .filter((p) => p.payment_status === "overdue")
+    .reduce((sum, p) => sum + (p.payment_amount || 0), 0);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Payment Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Payment Management
+          </h1>
           <p className="text-gray-600 mt-2">Track and manage member payments</p>
         </div>
         <button
@@ -100,41 +147,15 @@ const PaymentManagement: React.FC = () => {
         </button>
       </div>
 
-      {/* Payment Stats */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-green-600">${totalRevenue.toLocaleString()}</p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending Payments</p>
-              <p className="text-2xl font-bold text-yellow-600">${pendingAmount.toLocaleString()}</p>
-            </div>
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Overdue Amount</p>
-              <p className="text-2xl font-bold text-red-600">${overdueAmount.toLocaleString()}</p>
-            </div>
-            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-              <AlertCircle className="w-6 h-6 text-red-600" />
-            </div>
-          </div>
-        </div>
+        <StatCard label="Total Revenue" value={totalRevenue} color="green" />
+        <StatCard
+          label="Pending Payments"
+          value={pendingAmount}
+          color="yellow"
+        />
+        <StatCard label="Overdue Amount" value={overdueAmount} color="red" />
       </div>
 
       {/* Filters */}
@@ -172,71 +193,66 @@ const PaymentManagement: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Member
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Payment Type
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Due Date
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <Th label="Member" />
+                <Th label="Payment Type" />
+                <Th label="Amount" />
+                <Th label="Status" />
+                <Th label="Due Date" />
+                <Th label="Actions" />
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredPayments.map((payment) => (
-                <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {getMemberName(payment.memberId)}
-                    </div>
+                <tr
+                  key={payment.paymentId}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {getMemberName(payment.memberId)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{payment.type}</div>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {payment.payment_type || "N/A"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      ${payment.amount.toLocaleString()}
-                    </div>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    ${payment.payment_amount?.toLocaleString() ?? "0"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
-                      {getStatusIcon(payment.status)}
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(payment.status)}`}>
-                        {payment.status}
+                      {getStatusIcon(payment.payment_status)}
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                          payment.payment_status
+                        )}`}
+                      >
+                        {payment.payment_status}
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {payment.dueDate}
-                    {payment.paidDate && (
-                      <div className="text-xs text-gray-500">Paid: {payment.paidDate}</div>
+                    {payment.payment_dueDate?.split("T")[0]}
+                    {payment.payment_paidDate && (
+                      <div className="text-xs text-gray-500">
+                        Paid: {payment.payment_paidDate.split("T")[0]}
+                      </div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {payment.status === 'pending' && (
+                    {payment.payment_status === "pending" && (
                       <button
-                        onClick={() => markAsPaid(payment.id)}
+                        onClick={() => markAsPaid(payment.paymentId)}
                         className="bg-green-100 text-green-800 hover:bg-green-200 px-3 py-1 rounded-lg transition-colors text-sm"
                       >
                         Mark as Paid
                       </button>
                     )}
-                    {payment.status === 'paid' && (
-                      <span className="text-green-600 text-sm">✓ Completed</span>
+                    {payment.payment_status === "paid" && (
+                      <span className="text-green-600 text-sm">
+                        ✓ Completed
+                      </span>
                     )}
-                    {payment.status === 'overdue' && (
+                    {payment.payment_status === "overdue" && (
                       <button
-                        onClick={() => markAsPaid(payment.id)}
+                        onClick={() => markAsPaid(payment.paymentId)}
                         className="bg-red-100 text-red-800 hover:bg-red-200 px-3 py-1 rounded-lg transition-colors text-sm"
                       >
                         Collect Payment
@@ -252,100 +268,140 @@ const PaymentManagement: React.FC = () => {
 
       {/* Add Payment Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Add New Payment</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Member</label>
-                <select
-                  value={formData.memberId}
-                  onChange={(e) => setFormData({ ...formData, memberId: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="">Select member</option>
-                  {members.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Payment Type</label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="">Select type</option>
-                  <option value="Monthly Membership">Monthly Membership</option>
-                  <option value="Annual Membership">Annual Membership</option>
-                  <option value="Personal Training">Personal Training</option>
-                  <option value="Registration Fee">Registration Fee</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
-                  <input
-                    type="number"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="paid">Paid</option>
-                    <option value="overdue">Overdue</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-                <input
-                  type="date"
-                  value={formData.dueDate}
-                  onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 space-y-4">
+            <h2 className="text-xl font-semibold">Add New Payment</h2>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  await axios.post(
+                    "http://localhost:8080/api/addPayment",
+                    formData
+                  );
+                  await fetchPayments();
+                  setIsModalOpen(false);
+                  setFormData({
+                    memberId: "",
+                    payment_amount: 0,
+                    payment_type: "",
+                    payment_status: "pending",
+                    payment_dueDate: "",
+                  });
+                } catch (error) {
+                  console.error("Error adding payment:", error);
+                }
+              }}
+              className="space-y-4"
+            >
+              <input
+                type="text"
+                placeholder="Member ID"
+                value={formData.memberId}
+                onChange={(e) =>
+                  setFormData({ ...formData, memberId: e.target.value })
+                }
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                required
+              />
+              <input
+                type="number"
+                placeholder="Amount"
+                value={formData.payment_amount}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    payment_amount: Number(e.target.value),
+                  })
+                }
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Type"
+                value={formData.payment_type}
+                onChange={(e) =>
+                  setFormData({ ...formData, payment_type: e.target.value })
+                }
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                required
+              />
+              <input
+                type="date"
+                value={formData.payment_dueDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, payment_dueDate: e.target.value })
+                }
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                required
+              />
+              <div className="flex justify-end space-x-2">
                 <button
                   type="button"
-                  onClick={resetForm}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-lg hover:from-blue-600 hover:to-green-600 transition-all"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  Add Payment
+                  Add
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+// Reusable Components
+const Th = ({ label }: { label: string }) => (
+  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+    {label}
+  </th>
+);
+
+const StatCard = ({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: number;
+  color: "green" | "yellow" | "red";
+}) => {
+  const colorMap = {
+    green: ["bg-green-100", "text-green-600"],
+    yellow: ["bg-yellow-100", "text-yellow-600"],
+    red: ["bg-red-100", "text-red-600"],
+  }[color];
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600">{label}</p>
+          <p className={`text-2xl font-bold ${colorMap[1]}`}>
+            ${value.toLocaleString()}
+          </p>
+        </div>
+        <div
+          className={`w-12 h-12 ${colorMap[0]} rounded-lg flex items-center justify-center`}
+        >
+          {color === "green" ? (
+            <CheckCircle className={colorMap[1]} />
+          ) : color === "yellow" ? (
+            <Clock className={colorMap[1]} />
+          ) : (
+            <AlertCircle className={colorMap[1]} />
+          )}
+        </div>
+      </div>
     </div>
   );
 };

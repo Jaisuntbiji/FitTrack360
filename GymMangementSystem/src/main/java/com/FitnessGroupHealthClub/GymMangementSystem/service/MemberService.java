@@ -44,4 +44,8 @@ public class MemberService {
     public void updateMember(Member member) {
         memberRepository.save(member);
     }
+
+    public Member getMemberByEmail(String email){
+        return  memberRepository.findBymemberEmail(email);
+    }
 }

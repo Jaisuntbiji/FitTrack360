@@ -33,7 +33,7 @@ export interface GymClass {
 }
 
 export interface Payment {
-  id: string;
+  paymentId: string;
   memberId: string;
   amount: number;
   type: string;
@@ -75,46 +75,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const [trainers, setTrainers] = useState<Trainer[]>([]);
 
-  const [classes, setClasses] = useState<GymClass[]>([
-    {
-      id: "1",
-      name: "Morning Yoga",
-      trainerId: "2",
-      schedule: "Mon-Wed-Fri 7:00 AM",
-      capacity: 20,
-      enrolled: 15,
-      duration: "60 min",
-    },
-    {
-      id: "2",
-      name: "CrossFit Training",
-      trainerId: "1",
-      schedule: "Tue-Thu 6:00 PM",
-      capacity: 15,
-      enrolled: 12,
-      duration: "45 min",
-    },
-  ]);
+  const [classes, setClasses] = useState<GymClass[]>([]);
 
-  const [payments, setPayments] = useState<Payment[]>([
-    {
-      id: "1",
-      memberId: "1",
-      amount: 1200,
-      type: "Annual Membership",
-      status: "paid",
-      dueDate: "2024-01-15",
-      paidDate: "2024-01-10",
-    },
-    {
-      id: "2",
-      memberId: "2",
-      amount: 150,
-      type: "Monthly Membership",
-      status: "pending",
-      dueDate: "2024-12-01",
-    },
-  ]);
+  const [payments, setPayments] = useState<Payment[]>([]);
 
   const addMember = (member: Omit<Member, "id">) => {
     const newMember = { ...member, id: Date.now().toString() };
