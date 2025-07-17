@@ -68,4 +68,8 @@ public class PaymentService {
     public List<Payment> getPayementList() {
         return paymentRepository.findAll();
     }
+
+    public List<Payment> getPayementDetailsById(Long memberId) {
+        return paymentRepository.findAllByMemberId(memberId);
+    }
 }

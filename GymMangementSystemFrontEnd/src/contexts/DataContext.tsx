@@ -1,15 +1,15 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 export interface Member {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  membershipType: string;
+  memberId: number;
+  memberName: string;
+  memberEmail: string;
+  memberPhoneNo: string;
+  memberShipType: string;
   startDate: string;
   expiryDate: string;
   status: "active" | "expired" | "suspended";
-  trainerId?: string;
+  trainerId?: number | null;
 }
 
 export interface Trainer {
@@ -33,13 +33,13 @@ export interface GymClass {
 }
 
 export interface Payment {
-  paymentId: string;
-  memberId: string;
-  amount: number;
-  type: string;
-  status: "paid" | "pending" | "overdue";
-  dueDate: string;
-  paidDate?: string;
+  paymentId: number;
+  memberId: number;
+  payment_amount: number;
+  payment_type: string;
+  payment_status: "paid" | "pending" | "overdue";
+  payment_dueDate: string;
+  payment_paidDate?: string;
 }
 
 interface DataContextType {

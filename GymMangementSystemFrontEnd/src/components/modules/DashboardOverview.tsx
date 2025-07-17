@@ -29,8 +29,34 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
   const [apiStats, setApiStats] = useState<ApiStats | null>(null);
 
   const { user } = useAuth();
-  const [memberData, setMemberData] = useState<any>(null);
+  const [memberData, setMemberData] = useState<Member | null>(null);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [daysBetween, setDaysBetween] = useState(0);
 
+  const handleCalculate = () => {
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        alert("Invalid date format.");
+        return;
+      }
+
+      const timeDiff = end.getTime() - start.getTime(); // milliseconds
+      const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24)); // Convert ms to days
+
+      if (daysDiff < 0) {
+        alert("End date must be after start date.");
+        return;
+      }
+
+      setDaysBetween(daysDiff);
+    } else {
+      alert("Please provide both start and end dates.");
+    }
+  };
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!user || !user.userEmail) return;
@@ -51,8 +77,21 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
           const res = await axios.get(
             `http://localhost:8080/api/getMemberByEmail/${user.userEmail}`
           );
-          console.log(res.data);
-          setMemberData(res.data);
+          const member = res.data;
+
+          // Calculate days left from membershipEndDate
+          if (member?.membershipEndDate) {
+            const today = new Date();
+            const endDate = new Date(member.membershipEndDate);
+            const timeDiff = endDate.getTime() - today.getTime();
+            const daysLeft = Math.max(
+              Math.ceil(timeDiff / (1000 * 60 * 60 * 24)),
+              0
+            );
+            setDaysBetween(daysLeft); // Append this to the fetched object
+          }
+
+          setMemberData(member);
         } catch (error) {
           console.error("Failed to fetch member data by email:", error);
         }
@@ -128,38 +167,38 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
       return [
         {
           title: "Membership Status",
-          value: memberData?.membershipStatus || "Loading...",
+          value: memberData?.status || "Loading...",
           icon: CheckCircle2,
           color: "bg-green-500",
-          change: `${memberData?.daysLeft ?? "..."} days left`,
+          change: `${daysBetween} days left`,
         },
-        {
-          title: "Classes Attended",
-          value: memberData?.classesAttended || 0,
-          icon: Calendar,
-          color: "bg-blue-500",
-          change: "This month",
-        },
-        {
-          title: "Next Payment",
-          value: memberData?.nextPaymentAmount
-            ? `$${memberData.nextPaymentAmount}`
-            : "$0",
-          icon: CreditCard,
-          color: "bg-orange-500",
-          change: memberData?.nextPaymentDue
-            ? `Due ${new Date(memberData.nextPaymentDue).toLocaleDateString()}`
-            : "Due soon",
-        },
-        {
-          title: "Fitness Goal",
-          value: memberData?.fitnessProgress
-            ? `${memberData.fitnessProgress}%`
-            : "0%",
-          icon: TrendingUp,
-          color: "bg-purple-500",
-          change: "Progress",
-        },
+        // {
+        //   title: "Classes Attended",
+        //   value: memberData?.classesAttended || 0,
+        //   icon: Calendar,
+        //   color: "bg-blue-500",
+        //   change: "This month",
+        // },
+        // {
+        //   title: "Next Payment",
+        //   value: memberData?.nextPaymentAmount
+        //     ? `$${memberData.nextPaymentAmount}`
+        //     : "$0",
+        //   icon: CreditCard,
+        //   color: "bg-orange-500",
+        //   change: memberData?.nextPaymentDue
+        //     ? `Due ${new Date(memberData.nextPaymentDue).toLocaleDateString()}`
+        //     : "Due soon",
+        // },
+        // {
+        //   title: "Fitness Goal",
+        //   value: memberData?.fitnessProgress
+        //     ? `${memberData.fitnessProgress}%`
+        //     : "0%",
+        //   icon: TrendingUp,
+        //   color: "bg-purple-500",
+        //   change: "Progress",
+        // },
       ];
     }
   };
