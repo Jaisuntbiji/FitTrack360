@@ -30,33 +30,9 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
 
   const { user } = useAuth();
   const [memberData, setMemberData] = useState<Member | null>(null);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
   const [daysBetween, setDaysBetween] = useState(0);
+  const [expiredMember, setexpiredMember] = useState(0);
 
-  const handleCalculate = () => {
-    if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        alert("Invalid date format.");
-        return;
-      }
-
-      const timeDiff = end.getTime() - start.getTime(); // milliseconds
-      const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24)); // Convert ms to days
-
-      if (daysDiff < 0) {
-        alert("End date must be after start date.");
-        return;
-      }
-
-      setDaysBetween(daysDiff);
-    } else {
-      alert("Please provide both start and end dates.");
-    }
-  };
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!user || !user.userEmail) return;
@@ -66,6 +42,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
           const res = await axios.get(
             "http://localhost:8080/api/dashboadOverview"
           );
+
+          const warning = await axios.get(
+            "http://localhost:8080/api/checkExpiedMember"
+          );
+          setexpiredMember(warning.data);
           setApiStats(res.data);
         } catch (error) {
           console.error("Failed to fetch dashboard overview:", error);
@@ -108,28 +89,28 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
           value: apiStats?.totalMembers,
           icon: Users,
           color: "bg-blue-500",
-          change: "+12%",
+          change: null,
         },
         {
           title: "Active Trainers",
           value: apiStats?.activeTrainers,
           icon: UserCheck,
           color: "bg-green-500",
-          change: "+5%",
+          change: null,
         },
         {
-          title: "Total Classes",
-          value: apiStats?.totalClass,
+          title: "Expired Members",
+          value: expiredMember,
           icon: Calendar,
           color: "bg-purple-500",
-          change: "+8%",
+          change: "",
         },
         {
           title: "Monthly Revenue",
           value: apiStats?.monthlyRevenue,
           icon: CreditCard,
           color: "bg-orange-500",
-          change: "+15%",
+          change: null,
         },
       ];
     } else if (userRole === "trainer") {
@@ -340,127 +321,6 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
         })}
       </div>
 
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Recent Activity
-          </h3>
-          <div className="space-y-4">
-            {recentActivity.map((activity, index) => {
-              const Icon = activity.icon;
-              return (
-                <div key={index} className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                    <Icon className="w-4 h-4 text-gray-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-900">{activity.message}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {activity.time}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            {userRole === "admin" && (
-              <>
-                <button className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-left">
-                  <Users className="w-6 h-6 text-blue-600 mb-2" />
-                  <p className="text-sm font-medium text-blue-900">
-                    Add Member
-                  </p>
-                </button>
-                <button className="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-left">
-                  <UserCheck className="w-6 h-6 text-green-600 mb-2" />
-                  <p className="text-sm font-medium text-green-900">
-                    Add Trainer
-                  </p>
-                </button>
-                <button className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-left">
-                  <Calendar className="w-6 h-6 text-purple-600 mb-2" />
-                  <p className="text-sm font-medium text-purple-900">
-                    Schedule Class
-                  </p>
-                </button>
-                <button className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors text-left">
-                  <CreditCard className="w-6 h-6 text-orange-600 mb-2" />
-                  <p className="text-sm font-medium text-orange-900">
-                    Process Payment
-                  </p>
-                </button>
-              </>
-            )}
-            {userRole === "trainer" && (
-              <>
-                <button className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-left">
-                  <Calendar className="w-6 h-6 text-blue-600 mb-2" />
-                  <p className="text-sm font-medium text-blue-900">
-                    View Schedule
-                  </p>
-                </button>
-                <button className="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-left">
-                  <Users className="w-6 h-6 text-green-600 mb-2" />
-                  <p className="text-sm font-medium text-green-900">
-                    Check Members
-                  </p>
-                </button>
-                <button className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-left">
-                  <CheckCircle2 className="w-6 h-6 text-purple-600 mb-2" />
-                  <p className="text-sm font-medium text-purple-900">
-                    Mark Attendance
-                  </p>
-                </button>
-                <button className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors text-left">
-                  <TrendingUp className="w-6 h-6 text-orange-600 mb-2" />
-                  <p className="text-sm font-medium text-orange-900">
-                    Update Progress
-                  </p>
-                </button>
-              </>
-            )}
-            {userRole === "member" && (
-              <>
-                <button className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-left">
-                  <Calendar className="w-6 h-6 text-blue-600 mb-2" />
-                  <p className="text-sm font-medium text-blue-900">
-                    Book Class
-                  </p>
-                </button>
-                <button className="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-left">
-                  <CreditCard className="w-6 h-6 text-green-600 mb-2" />
-                  <p className="text-sm font-medium text-green-900">
-                    View Payments
-                  </p>
-                </button>
-                <button className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-left">
-                  <TrendingUp className="w-6 h-6 text-purple-600 mb-2" />
-                  <p className="text-sm font-medium text-purple-900">
-                    Track Progress
-                  </p>
-                </button>
-                <button className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors text-left">
-                  <Users className="w-6 h-6 text-orange-600 mb-2" />
-                  <p className="text-sm font-medium text-orange-900">
-                    Contact Trainer
-                  </p>
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Alerts & Notifications */}
       {userRole === "admin" && (
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -468,18 +328,21 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
             Alerts & Notifications
           </h3>
           <div className="space-y-3">
-            <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
-              <AlertCircle className="w-5 h-5 text-yellow-600" />
-              <div>
-                <p className="text-sm font-medium text-yellow-900">
-                  3 memberships expiring this week
-                </p>
-                <p className="text-xs text-yellow-700">
-                  Review and send renewal reminders
-                </p>
+            {expiredMember !== 0 && (
+              <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-yellow-600" />
+                <div>
+                  <p className="text-sm font-medium text-yellow-900">
+                    {expiredMember} memberships expiring this week
+                  </p>
+                  <p className="text-xs text-yellow-700">
+                    Review and send renewal reminders
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
+            )}
+
+            {/* <div className="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
               <AlertCircle className="w-5 h-5 text-red-600" />
               <div>
                 <p className="text-sm font-medium text-red-900">
@@ -500,7 +363,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
                   Congratulations on reaching your revenue goal!
                 </p>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       )}

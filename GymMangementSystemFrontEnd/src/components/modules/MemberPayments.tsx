@@ -62,7 +62,6 @@ const MemberPayments: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching payment data:", error);
-        x;
       }
     };
 

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.Date;
 import java.util.List;
 
 
@@ -25,7 +26,6 @@ public class MemberService {
 
     public boolean addMember(Member member){
         memberRepository.save(member);
-        paymentService.addPayement(member);
         return true;
     }
 
@@ -47,5 +47,17 @@ public class MemberService {
 
     public Member getMemberByEmail(String email){
         return  memberRepository.findBymemberEmail(email);
+    }
+
+    public int getExpiedMember() {
+        List<Member> members = memberRepository.findAll();
+        Date date = new Date();
+        int total = 0;
+        for (Member member : members) {
+            if(member.getStatus().equals("expired")){
+                total++;
+            }
+        }
+            return total;
     }
 }

@@ -62,4 +62,9 @@ public class MemberController {
         return memberService.getMemberByEmail(email);
     }
 
+    @GetMapping("/checkExpiedMember")
+    public int checkExpiedMember() {
+        return memberService.getExpiedMember();
+    }
+
 }

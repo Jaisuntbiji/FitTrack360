@@ -21,7 +21,7 @@ public class Payment {
 	@Column(name = "memberid")
 	private long memberId;
 	@Column(name = "payment_amount")
-	private int payment_amount;
+	private double payment_amount;
 	@Column(name = "payment_type")
 	private String payment_type;
 	@Column(name = "payment_status")
@@ -47,11 +47,11 @@ public class Payment {
 		this.memberId = memberId;
 	}
 
-	public int getPayment_amount() {
+	public double getPayment_amount() {
 		return payment_amount;
 	}
 
-	public void setPayment_amount(int payment_amount) {
+	public void setPayment_amount(double payment_amount) {
 		this.payment_amount = payment_amount;
 	}
 

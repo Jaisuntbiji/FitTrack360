@@ -1,9 +1,13 @@
 package com.FitnessGroupHealthClub.GymMangementSystem.controller;
 
+import com.FitnessGroupHealthClub.GymMangementSystem.model.AddPayementRequest;
+import com.FitnessGroupHealthClub.GymMangementSystem.model.Member;
 import com.FitnessGroupHealthClub.GymMangementSystem.model.Payment;
 import com.FitnessGroupHealthClub.GymMangementSystem.model.PaymentOverview;
 import com.FitnessGroupHealthClub.GymMangementSystem.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,4 +34,12 @@ public class PaymentController {
     public List<Payment> getPaymentList(@PathVariable Long memberId) {
         return paymentService.getPayementDetailsById(memberId);
     }
+
+    @PostMapping("/addPayment")
+    public ResponseEntity<String> addPayment(@RequestBody AddPayementRequest request) {
+        paymentService.addPayement(request);
+        return ResponseEntity.ok("Payment received successfully.");
+    }
+
+    
 }

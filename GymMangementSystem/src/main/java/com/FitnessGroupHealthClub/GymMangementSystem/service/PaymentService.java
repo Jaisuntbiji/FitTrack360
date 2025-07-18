@@ -1,9 +1,6 @@
 package com.FitnessGroupHealthClub.GymMangementSystem.service;
 
-import com.FitnessGroupHealthClub.GymMangementSystem.model.Member;
-import com.FitnessGroupHealthClub.GymMangementSystem.model.MemberShip;
-import com.FitnessGroupHealthClub.GymMangementSystem.model.Payment;
-import com.FitnessGroupHealthClub.GymMangementSystem.model.PaymentOverview;
+import com.FitnessGroupHealthClub.GymMangementSystem.model.*;
 import com.FitnessGroupHealthClub.GymMangementSystem.repository.MemberRepository;
 import com.FitnessGroupHealthClub.GymMangementSystem.repository.MemberShipRepository;
 import com.FitnessGroupHealthClub.GymMangementSystem.repository.PaymentRepository;
@@ -31,22 +28,14 @@ public class PaymentService {
 
 
 
-    public boolean addPayement(Member member) {
-        if(member != null){
-            List<MemberShip> memberShipes = memberShipRepository.findAll();
-            payment.setMemberId(member.getMemberId());
-            for(MemberShip memberShip : memberShipes){
-                if(memberShip.getMembershipName().equals(member.getMemberShipType())){
-                    payment.setPayment_type(memberShip.getMembershipName());
-                    payment.setPayment_amount(memberShip.getMembershipAmount());
-                    break;
-                }
-            }
-            payment.setPayment_status("paid");
-            payment.setPayment_paidDate(new Date());
-            payment.setPayment_dueDate(new Date());
-            paymentRepository.save(payment);
-        }
+    public boolean addPayement(AddPayementRequest request) {
+        payment.setMemberId(Long.parseLong(request.getMemberId()));
+        payment.setPayment_amount(request.getPaymentAmount());
+        payment.setPayment_dueDate(request.getPaymentDueDate());
+        payment.setPayment_status(request.getPaymentStatus());
+        payment.setPayment_type(request.getPaymentType());
+        payment.setPayment_paidDate(new Date());
+        paymentRepository.save(payment);
         return true;
     }
 
@@ -71,5 +60,9 @@ public class PaymentService {
 
     public List<Payment> getPayementDetailsById(Long memberId) {
         return paymentRepository.findAllByMemberId(memberId);
+    }
+
+    public  Payment getPaymentById(Long paymentId) {
+        return paymentRepository.findById(paymentId).get();
     }
 }

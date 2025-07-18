@@ -9,7 +9,7 @@ import {
   AlertCircle,
   Plus,
 } from "lucide-react";
-import { useData } from "../../contexts/DataContext";
+import { Member, useData } from "../../contexts/DataContext";
 
 export interface Payment {
   paymentId: number;
@@ -23,7 +23,11 @@ export interface Payment {
 
 const PaymentManagement: React.FC = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [memberNames, setMemberNames] = useState<Record<string, string>>({});
+  const [membershipTypes, setMembershipTypes] = useState<
+    { membershipName: string; membershipAmount: number }[]
+  >([]);
   const { updatePayment } = useData();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -38,6 +42,8 @@ const PaymentManagement: React.FC = () => {
 
   useEffect(() => {
     fetchPayments();
+    fetchMemberList();
+    fetchMembershipTypes();
   }, []);
 
   const fetchPayments = async () => {
@@ -46,6 +52,24 @@ const PaymentManagement: React.FC = () => {
       setPayments(response.data);
     } catch (error) {
       console.error("Error fetching payments:", error);
+    }
+  };
+
+  const fetchMemberList = async () => {
+    try {
+      const respo = await axios.get("http://localhost:8080/api/viewMember");
+      setMembers(respo.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const fetchMembershipTypes = async () => {
+    try {
+      const res = await axios.get("http://localhost:8080/api/getMemberShip");
+      setMembershipTypes(res.data);
+    } catch (err) {
+      console.error("Error fetching membership types:", err);
     }
   };
 
@@ -64,6 +88,64 @@ const PaymentManagement: React.FC = () => {
     }
   };
 
+  const handleMemberChange = async (memberId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      memberId,
+    }));
+
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/getMember/${memberId}`
+      );
+      const memberData = res.data;
+
+      if (memberData && memberData.memberShipType) {
+        const selectedType = membershipTypes.find(
+          (type) => type.membershipName === memberData.memberShipType
+        );
+        if (selectedType) {
+          setFormData((prev) => ({
+            ...prev,
+            payment_amount: selectedType.membershipAmount,
+          }));
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching member details:", error);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Transform frontend camelCase to backend camelCase-compatible with Java naming
+    const payload = {
+      memberId: formData.memberId,
+      paymentAmount: formData.payment_amount,
+      paymentType: formData.payment_type,
+      paymentStatus: formData.payment_status,
+      paymentDueDate: formData.payment_dueDate,
+    };
+
+    console.log("Submitting payment payload:", payload);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/api/addPayment",
+        payload
+      );
+      console.log("Payment added:", response.data);
+      fetchPayments();
+      resetForm();
+    } catch (error: any) {
+      console.error("Error adding payment:", error);
+      if (error.response) {
+        console.error("Backend error:", error.response.data);
+      }
+    }
+  };
+
   const getMemberName = (memberId: string): string => {
     if (memberNames[memberId]) {
       return memberNames[memberId];
@@ -71,6 +153,17 @@ const PaymentManagement: React.FC = () => {
       fetchMemberName(memberId);
       return "Loading...";
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      memberId: "",
+      payment_amount: 0,
+      payment_type: "",
+      payment_status: "pending",
+      payment_dueDate: "",
+    });
+    setIsModalOpen(false);
   };
 
   const getStatusIcon = (status: string) => {
@@ -268,87 +361,121 @@ const PaymentManagement: React.FC = () => {
 
       {/* Add Payment Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 space-y-4">
-            <h2 className="text-xl font-semibold">Add New Payment</h2>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                try {
-                  await axios.post(
-                    "http://localhost:8080/api/addPayment",
-                    formData
-                  );
-                  await fetchPayments();
-                  setIsModalOpen(false);
-                  setFormData({
-                    memberId: "",
-                    payment_amount: 0,
-                    payment_type: "",
-                    payment_status: "pending",
-                    payment_dueDate: "",
-                  });
-                } catch (error) {
-                  console.error("Error adding payment:", error);
-                }
-              }}
-              className="space-y-4"
-            >
-              <input
-                type="text"
-                placeholder="Member ID"
-                value={formData.memberId}
-                onChange={(e) =>
-                  setFormData({ ...formData, memberId: e.target.value })
-                }
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                required
-              />
-              <input
-                type="number"
-                placeholder="Amount"
-                value={formData.payment_amount}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    payment_amount: Number(e.target.value),
-                  })
-                }
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Type"
-                value={formData.payment_type}
-                onChange={(e) =>
-                  setFormData({ ...formData, payment_type: e.target.value })
-                }
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                required
-              />
-              <input
-                type="date"
-                value={formData.payment_dueDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, payment_dueDate: e.target.value })
-                }
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                required
-              />
-              <div className="flex justify-end space-x-2">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Add New Payment
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Member
+                </label>
+                <select
+                  value={formData.memberId}
+                  onChange={(e) => handleMemberChange(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select member</option>
+                  {members.map((member) => (
+                    <option key={member.memberId} value={member.memberId}>
+                      {member.memberName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Payment Type
+                </label>
+                <select
+                  value={formData.payment_type}
+                  onChange={(e) =>
+                    setFormData({ ...formData, payment_type: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select type</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Google pay">Google pay</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Amount ($)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.payment_amount}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        payment_amount: parseFloat(e.target.value),
+                      })
+                    }
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={formData.payment_status}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        payment_status: e.target.value as any,
+                      })
+                    }
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="overdue">Overdue</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Due Date
+                </label>
+                <input
+                  type="date"
+                  value={formData.payment_dueDate}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      payment_dueDate: e.target.value,
+                    })
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                  onClick={resetForm}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-lg hover:from-blue-600 hover:to-green-600 transition-all"
                 >
-                  Add
+                  Add Payment
                 </button>
               </div>
             </form>
