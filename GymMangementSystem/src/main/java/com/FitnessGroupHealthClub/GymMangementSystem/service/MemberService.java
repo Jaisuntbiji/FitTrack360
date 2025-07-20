@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.Date;
 import java.util.List;
 
+import static com.FitnessGroupHealthClub.GymMangementSystem.service.SHA256Hasher.getSHA256Hash;
+
 
 @Service
 public class MemberService {
@@ -25,6 +27,7 @@ public class MemberService {
     PaymentService paymentService;
 
     public boolean addMember(Member member){
+        member.setHashKey(getSHA256Hash(member.getMemberEmail()));
         memberRepository.save(member);
         return true;
     }
@@ -59,5 +62,14 @@ public class MemberService {
             }
         }
             return total;
+    }
+
+    public boolean emailCheck(String userEmail) {
+        Member member = memberRepository.findByhashKey(getSHA256Hash(userEmail));
+        if(member == null){
+            return true;
+        }else {
+            return false;
+        }
     }
 }

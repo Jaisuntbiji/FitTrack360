@@ -33,8 +33,8 @@ public class Member {
 	private Date expiryDate;
 	@Column(name ="member_status")
 	private String status;
-	@Column(name ="member_trainerid")
-	private String trainerId;
+	@Column(name ="member_hashKey")
+	private String hashKey;
 
 
 	public long getMemberId() {
@@ -101,12 +101,12 @@ public class Member {
 		this.status = status;
 	}
 
-	public String getTrainerId() {
-		return trainerId;
+	public String getHashKey() {
+		return hashKey;
 	}
 
-	public void setTrainerId(String trainerId) {
-		this.trainerId = trainerId;
+	public void setHashKey(String hashKey) {
+		this.hashKey = hashKey;
 	}
 
 	@Override
@@ -120,7 +120,7 @@ public class Member {
 				", startDate=" + startDate +
 				", expiryDate=" + expiryDate +
 				", status='" + status + '\'' +
-				", trainerId='" + trainerId + '\'' +
+				", trainerId='" + hashKey + '\'' +
 				'}';
 	}
 }

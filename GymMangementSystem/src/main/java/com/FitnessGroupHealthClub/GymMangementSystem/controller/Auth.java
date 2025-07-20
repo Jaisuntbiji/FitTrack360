@@ -23,6 +23,9 @@ public class Auth {
 
     @Autowired
     AdminOverViewService adminOverViewService;
+
+    @Autowired
+    MemberService memberService;
     @Autowired
     private User user;
 
@@ -35,6 +38,11 @@ public class Auth {
         }else{
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+    }
+
+        @GetMapping("/emailCheck/{userEmail}")
+    public boolean emailCheck(@PathVariable String userEmail){
+       return memberService.emailCheck(userEmail);
     }
 
     @GetMapping("/dashboadOverview")

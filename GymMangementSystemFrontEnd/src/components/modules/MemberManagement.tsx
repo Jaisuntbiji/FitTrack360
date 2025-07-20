@@ -39,6 +39,8 @@ const MemberManagement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
+  const [emailTouched, setEmailTouched] = useState(false);
   const [userForm, setuserForm] = useState({
     userEmail: "",
     userPassword: "",
@@ -110,6 +112,21 @@ const MemberManagement: React.FC = () => {
       console.error("Error submitting member", error);
     }
   };
+  //Method for checking the email is availability
+  const checkEmailAvailability = async (email: string) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/emailCheck/${email}`
+      );
+      setEmailAvailable(response.data);
+      console.log(emailAvailable);
+    } catch (error) {
+      console.error("Error checking email availability", error);
+      setEmailAvailable(false);
+      // setEmailTouched(false);
+      // assume taken if error
+    }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -124,6 +141,8 @@ const MemberManagement: React.FC = () => {
     });
     setEditingMember(null);
     setIsModalOpen(false);
+    setEmailAvailable(false);
+    setEmailTouched(false);
   };
 
   const handleEdit = async (member: Member) => {
@@ -329,7 +348,7 @@ const MemberManagement: React.FC = () => {
                 placeholder="Name"
                 className="w-full border rounded px-3 py-2"
               />
-              <input
+              {/* <input
                 value={formData.memberEmail}
                 onChange={(e) =>
                   setFormData({ ...formData, memberEmail: e.target.value })
@@ -337,7 +356,40 @@ const MemberManagement: React.FC = () => {
                 required
                 placeholder="Email"
                 className="w-full border rounded px-3 py-2"
-              />
+              /> */}
+              <div className="relative">
+                <input
+                  value={formData.memberEmail}
+                  onChange={(e) => {
+                    setFormData({ ...formData, memberEmail: e.target.value });
+                    setEmailTouched(false); // reset touched until blur
+                    setEmailAvailable(null); // reset check status
+                  }}
+                  onBlur={() => {
+                    setEmailTouched(true);
+                    checkEmailAvailability(formData.memberEmail);
+                  }}
+                  required
+                  placeholder="Email"
+                  className={`w-full border rounded px-3 py-2 ${
+                    emailTouched && emailAvailable === false
+                      ? "border-red-500"
+                      : emailTouched && emailAvailable === true
+                      ? "border-green-500"
+                      : ""
+                  }`}
+                />
+                {emailTouched && emailAvailable === true && (
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-600">
+                    ✅
+                  </span>
+                )}
+                {emailTouched && emailAvailable === false && (
+                  <p className="text-red-500 text-sm mt-1">
+                    This email is already used.
+                  </p>
+                )}
+              </div>
 
               <div className="relative">
                 {/* <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" /> */}
