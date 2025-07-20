@@ -193,10 +193,8 @@ const PaymentManagement: React.FC = () => {
   };
 
   const markAsPaid = (paymentId: number) => {
-    updatePayment(String(paymentId), {
-      status: "paid",
-      paidDate: new Date().toISOString().split("T")[0],
-    });
+    const rep = axios.post(`http://localhost:8080/api/markPaid/${paymentId}`);
+    console.log(rep);
   };
 
   const filteredPayments = payments.filter((payment) => {

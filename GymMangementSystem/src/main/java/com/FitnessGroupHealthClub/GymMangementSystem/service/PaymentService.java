@@ -25,10 +25,16 @@ public class PaymentService {
     @Autowired
     MemberShipRepository memberShipRepository;
 
-
+@Autowired
+MemberRepository memberRepository;
 
 
     public boolean addPayement(AddPayementRequest request) {
+        Member member = memberRepository.findById(Long.parseLong(request.getMemberId())).orElse(null);
+        if(member.getStatus().equals("Pending")||member.getStatus().equals("expired")){
+            member.setStatus("active");
+            member.setExpiryDate(request.getPaymentDueDate());
+       }
         payment.setMemberId(Long.parseLong(request.getMemberId()));
         payment.setPayment_amount(request.getPaymentAmount());
         payment.setPayment_dueDate(request.getPaymentDueDate());
@@ -64,5 +70,12 @@ public class PaymentService {
 
     public  Payment getPaymentById(Long paymentId) {
         return paymentRepository.findById(paymentId).get();
+    }
+
+    public void markPaid(long payementId) {
+        Payment payment = paymentRepository.findById(payementId).get();
+        payment.setPayment_status("paid");
+        paymentRepository.save(payment);
+
     }
 }

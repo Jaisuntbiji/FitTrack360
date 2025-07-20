@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { Dumbbell, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { Dumbbell, Mail, Lock, Eye, EyeOff } from "lucide-react";
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

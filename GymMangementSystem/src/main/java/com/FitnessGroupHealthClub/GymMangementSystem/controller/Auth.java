@@ -9,6 +9,8 @@ import com.FitnessGroupHealthClub.GymMangementSystem.service.MemberService;
 import com.FitnessGroupHealthClub.GymMangementSystem.service.TrianerService;
 import com.FitnessGroupHealthClub.GymMangementSystem.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,11 +23,18 @@ public class Auth {
 
     @Autowired
     AdminOverViewService adminOverViewService;
+    @Autowired
+    private User user;
 
 
     @PostMapping("/login")
-    public User login(@RequestBody LoginRequest loginRequest) {
-        return userService.loginAuth(loginRequest);
+    public ResponseEntity<User> login(@RequestBody LoginRequest loginRequest) {
+        User user = userService.loginAuth(loginRequest);
+        if (user != null) {
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
     }
 
     @GetMapping("/dashboadOverview")

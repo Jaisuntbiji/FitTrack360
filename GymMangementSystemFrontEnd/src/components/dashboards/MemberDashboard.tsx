@@ -11,7 +11,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ activeModule }) => {
   const renderModule = () => {
     switch (activeModule) {
       case "dashboard":
-        return <DashboardOverview userRole="member" />;
+        return <MembershipDetails />;
       case "membership":
         return <MembershipDetails />;
       case "payments":

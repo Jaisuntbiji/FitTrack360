@@ -2,10 +2,10 @@ import React from "react";
 import DashboardOverview from "../modules/DashboardOverview";
 import MemberManagement from "../modules/MemberManagement";
 import TrainerManagement from "../modules/TrainerManagement";
-import ClassManagement from "../modules/ClassManagement";
+// import ClassManagement from "../modules/ClassManagement";
 import PaymentManagement from "../modules/PaymentManagement";
-import AttendanceManagement from "../modules/AttendanceManagement";
-import ReportsManagement from "../modules/ReportsManagement";
+// import AttendanceManagement from "../modules/AttendanceManagement";
+// import ReportsManagement from "../modules/ReportsManagement";
 import SettingsManagement from "../modules/SettingsManagement";
 
 interface AdminDashboardProps {

@@ -46,6 +46,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.status === 200) {
         setUser(response.data);
         return true;
+      } else if (response.status === 401) {
+        return false;
       }
       return false;
     } catch (error) {

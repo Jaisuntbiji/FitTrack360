@@ -8,6 +8,7 @@ import {
   BarChart3,
   Settings,
   Dumbbell,
+  BadgeCheck,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -28,7 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         { id: "members", label: "Members", icon: Users },
         { id: "trainers", label: "Trainers", icon: UserCheck },
         { id: "payments", label: "Payments", icon: CreditCard },
-        { id: "settings", label: "Settings", icon: Settings },
+        { id: "settings", label: "Membership", icon: BadgeCheck },
       ];
     } else if (userRole === "trainer") {
       return [
@@ -39,7 +40,6 @@ const Sidebar: React.FC<SidebarProps> = ({
       ];
     } else {
       return [
-        { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
         { id: "membership", label: "Membership", icon: Users },
         { id: "payments", label: "Payments", icon: CreditCard },
       ];

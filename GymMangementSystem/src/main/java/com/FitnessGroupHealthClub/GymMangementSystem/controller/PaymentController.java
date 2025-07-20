@@ -41,5 +41,9 @@ public class PaymentController {
         return ResponseEntity.ok("Payment received successfully.");
     }
 
-    
+    @PostMapping("/markPaid/{payementId}")
+    public ResponseEntity<String> markPaid(@PathVariable long payementId) {
+        paymentService.markPaid(payementId);
+        return ResponseEntity.ok("Mark paid successfully.");
+    }
 }

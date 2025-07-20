@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Plus, Search, Filter, Edit, Trash2, Mail, Phone } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Filter,
+  Edit,
+  Trash2,
+  Mail,
+  Phone,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 type Member = {
   memberId: number;
   memberName: string | null;
   memberEmail: string | null;
+  memberPassword: String | null;
   memberPhoneNo: number | string | null;
   memberShipType: string;
   startDate: string;
@@ -13,15 +24,31 @@ type Member = {
   status: string;
 };
 
+type User = {
+  userEmail: String;
+  userPassword: String;
+  userName: String;
+  userRole: String;
+};
+
 const MemberManagement: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [userForm, setuserForm] = useState({
+    userEmail: "",
+    userPassword: "",
+    userName: "",
+    userRole: "member",
+  });
   const [formData, setFormData] = useState({
     memberName: "",
     memberEmail: "",
+    memberPassWord: "",
     memberPhoneNo: "",
     memberShipType: "",
     startDate: "",
@@ -62,8 +89,19 @@ const MemberManagement: React.FC = () => {
           ...editingMember,
           ...formData,
         });
+        await axios.put("http://localhost:8080/api/updateUser", {
+          ...editingUser,
+          ...userForm,
+        });
       } else {
         await axios.post("http://localhost:8080/api/addMember", formData);
+        console.log(formData.memberEmail);
+        setuserForm({
+          ...userForm,
+          userEmail: formData.memberEmail,
+          userName: formData.memberName,
+        });
+        await axios.post("http://localhost:8080/api/addUser", userForm);
       }
       resetForm();
       const res = await axios.get("http://localhost:8080/api/viewMember");
@@ -77,6 +115,7 @@ const MemberManagement: React.FC = () => {
     setFormData({
       memberName: "",
       memberEmail: "",
+      memberPassWord: "",
       memberPhoneNo: "",
       memberShipType: "",
       startDate: "",
@@ -92,8 +131,13 @@ const MemberManagement: React.FC = () => {
       const res = await axios.get(
         `http://localhost:8080/api/getMember/${member.memberId}`
       );
+      const pass = await axios.get(
+        `http://localhost:8080/api/getUser/${member.memberEmail}`
+      );
       setFormData(res.data);
+      setuserForm(pass.data);
       setEditingMember(member);
+      setEditingUser(userForm);
       setIsModalOpen(true);
     } catch (error) {
       console.log("Member Not updated");
@@ -294,6 +338,32 @@ const MemberManagement: React.FC = () => {
                 placeholder="Email"
                 className="w-full border rounded px-3 py-2"
               />
+
+              <div className="relative">
+                {/* <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" /> */}
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={userForm.userPassword}
+                  onChange={(e) =>
+                    setuserForm({ ...userForm, userPassword: e.target.value })
+                  }
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="Enter your password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
               <input
                 value={formData.memberPhoneNo ?? ""}
                 onChange={(e) =>

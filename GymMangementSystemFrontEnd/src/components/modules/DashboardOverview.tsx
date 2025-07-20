@@ -146,13 +146,13 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
       ];
     } else {
       return [
-        {
-          title: "Membership Status",
-          value: memberData?.status || "Loading...",
-          icon: CheckCircle2,
-          color: "bg-green-500",
-          change: `${daysBetween} days left`,
-        },
+        // {
+        //   title: "Membership Status",
+        //   value: memberData?.status || "Loading...",
+        //   icon: CheckCircle2,
+        //   color: "bg-green-500",
+        //   change: `${daysBetween} days left`,
+        // },
         // {
         //   title: "Classes Attended",
         //   value: memberData?.classesAttended || 0,
@@ -243,30 +243,30 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
       ];
     } else {
       return [
-        {
-          type: "class",
-          message: "Attended Morning Yoga class",
-          time: "2 hours ago",
-          icon: Calendar,
-        },
-        {
-          type: "payment",
-          message: "Monthly payment processed successfully",
-          time: "1 day ago",
-          icon: CreditCard,
-        },
-        {
-          type: "goal",
-          message: "Fitness goal progress updated",
-          time: "2 days ago",
-          icon: TrendingUp,
-        },
-        {
-          type: "class",
-          message: "Booked CrossFit class for tomorrow",
-          time: "3 days ago",
-          icon: Calendar,
-        },
+        // {
+        //   type: "class",
+        //   message: "Attended Morning Yoga class",
+        //   time: "2 hours ago",
+        //   icon: Calendar,
+        // },
+        // {
+        //   type: "payment",
+        //   message: "Monthly payment processed successfully",
+        //   time: "1 day ago",
+        //   icon: CreditCard,
+        // },
+        // {
+        //   type: "goal",
+        //   message: "Fitness goal progress updated",
+        //   time: "2 days ago",
+        //   icon: TrendingUp,
+        // },
+        // {
+        //   type: "class",
+        //   message: "Booked CrossFit class for tomorrow",
+        //   time: "3 days ago",
+        //   icon: Calendar,
+        // },
       ];
     }
   };

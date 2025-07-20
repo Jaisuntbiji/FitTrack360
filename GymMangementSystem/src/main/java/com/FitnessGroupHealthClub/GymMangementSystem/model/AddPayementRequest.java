@@ -1,6 +1,5 @@
 package com.FitnessGroupHealthClub.GymMangementSystem.model;
 
-import java.time.LocalDate;
 import java.util.Date;
 
 public class AddPayementRequest {

@@ -55,6 +55,11 @@ const MembershipDetails: React.FC = () => {
         setMemberData(data);
 
         if (data.expiryDate) {
+          const expiryDateOnly = new Date(data.expiryDate)
+            .toISOString()
+            .split("T")[0];
+          console.log("Expiry Date (only date):", expiryDateOnly);
+
           const expiry = new Date(data.expiryDate).getTime();
           const now = new Date().getTime();
           const diffDays = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
