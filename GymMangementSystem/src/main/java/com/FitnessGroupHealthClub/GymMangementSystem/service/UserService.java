@@ -1,7 +1,9 @@
 package com.FitnessGroupHealthClub.GymMangementSystem.service;
 
 import com.FitnessGroupHealthClub.GymMangementSystem.model.LoginRequest;
+import com.FitnessGroupHealthClub.GymMangementSystem.model.Member;
 import com.FitnessGroupHealthClub.GymMangementSystem.model.User;
+import com.FitnessGroupHealthClub.GymMangementSystem.repository.MemberRepository;
 import com.FitnessGroupHealthClub.GymMangementSystem.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,6 +11,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @Service
 public class UserService {
+
+    @Autowired
+    MemberService memberService;
+
     @Autowired
     UserRepository userRepository;
 
@@ -25,6 +31,7 @@ public class UserService {
     }
 
     public Boolean addUser(@RequestBody User user){
+        System.out.println(user);
         userRepository.save(user);
         return true;
     }

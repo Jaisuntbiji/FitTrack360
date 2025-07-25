@@ -1,14 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
-import {
-  Calendar,
-  CreditCard,
-  User,
-  Award,
-  Clock,
-  CheckCircle,
-} from "lucide-react";
+import { Calendar, AlertCircle, Clock, CheckCircle } from "lucide-react";
 
 interface FitnessGoal {
   goal: string;
@@ -73,6 +66,12 @@ const MembershipDetails: React.FC = () => {
     fetchMemberData();
   }, [user]);
 
+  const formatDate = (date: String) => {
+    const dataOnly = date.split("T");
+    const [year, month, day] = dataOnly[0].split("-");
+    return `${day}-${month}-${year}`; // Convert to DD-MM-YYYY
+  };
+
   if (!memberData) {
     return <p className="text-gray-600">Loading membership details...</p>;
   }
@@ -98,17 +97,34 @@ const MembershipDetails: React.FC = () => {
             <div className="flex items-center space-x-4 mt-3 text-blue-100">
               <div className="flex items-center space-x-1">
                 <Calendar className="w-4 h-4" />
-                <span>Started: {memberData.startDate}</span>
+                <span>Started: {formatDate(memberData.startDate)}</span>
               </div>
               <div className="flex items-center space-x-1">
                 <Clock className="w-4 h-4" />
-                <span>Expires: {memberData.expiryDate}</span>
+                <span>Expires: {formatDate(memberData.expiryDate)}</span>
               </div>
             </div>
           </div>
-          <div className="text-right">
+          {/* <div className="text-right">
             <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2">
               <CheckCircle className="w-8 h-8" />
+            </div>
+            <p className="text-blue-100">Status</p>
+            <p className="text-xl font-bold capitalize">{memberData.status}</p>
+          </div> */}
+          <div className="text-right">
+            <div
+              className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 ${
+                memberData.status === "expired"
+                  ? "bg-red-600 bg-opacity-80"
+                  : "bg-green-500 bg-opacity-20"
+              }`}
+            >
+              {memberData.status === "expired" ? (
+                <AlertCircle className="w-8 h-8 text-white" />
+              ) : (
+                <CheckCircle className="w-8 h-8 text-white" />
+              )}
             </div>
             <p className="text-blue-100">Status</p>
             <p className="text-xl font-bold capitalize">{memberData.status}</p>
@@ -127,11 +143,6 @@ const MembershipDetails: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Member Info, Benefits, Fitness Goals, History */}
-      {/* You can now safely reuse the rest of your layout using `memberData` */}
-
-      {/* TIP: You already have the rest of the design done. Just ensure the mock data is removed and replaced by `memberData` where needed. */}
     </div>
   );
 };

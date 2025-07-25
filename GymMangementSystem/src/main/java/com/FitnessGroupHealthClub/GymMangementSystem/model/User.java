@@ -1,11 +1,6 @@
 package com.FitnessGroupHealthClub.GymMangementSystem.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import org.springframework.stereotype.Component;
 
 @Entity
@@ -26,6 +21,8 @@ public class User {
 	private String userRole;
 	@Column(name = "user_avatar")
 	private String userAvatar;
+
+
 	public User(long userId, String userName, String userPassword, String userEmail, String userRole,
 			String userAvatar) {
 		super();
@@ -70,7 +67,6 @@ public class User {
 	public void setUserAvatar(String userAvatar) {
 		this.userAvatar = userAvatar;
 	}
-
 	@Override
 	public String toString() {
 		return "User{" +

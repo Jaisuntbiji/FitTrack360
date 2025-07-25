@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 @Entity
@@ -24,18 +25,19 @@ public class Member {
 	@Column(name = "member_email")
 	private String memberEmail;
 	@Column(name = "member_phone")
-	private int memberPhoneNo;
+	private String memberPhoneNo;
 	@Column(name = "member_Type")
 	private String memberShipType;
 	@Column(name = "member_startdate")
 	private Date startDate;
 	@Column(name = "member_expirydate")
 	private Date expiryDate;
-	@Column(name ="member_status")
+	@Setter
+    @Column(name ="member_status")
 	private String status;
-	@Column(name ="member_hashKey")
-	private String hashKey;
 
+	@Column(name = "member_image_path")
+	private String imagePath;
 
 	public long getMemberId() {
 		return memberId;
@@ -61,11 +63,11 @@ public class Member {
 		this.memberEmail = memberEmail;
 	}
 
-	public int getMemberPhoneNo() {
+	public String getMemberPhoneNo() {
 		return memberPhoneNo;
 	}
 
-	public void setMemberPhoneNo(int memberPhoneNo) {
+	public void setMemberPhoneNo(String memberPhoneNo) {
 		this.memberPhoneNo = memberPhoneNo;
 	}
 
@@ -101,15 +103,11 @@ public class Member {
 		this.status = status;
 	}
 
-	public String getHashKey() {
-		return hashKey;
-	}
+	public String getImagePath() { return imagePath; }
+	public void setImagePath(String imagePath) { this.imagePath = imagePath; }
 
-	public void setHashKey(String hashKey) {
-		this.hashKey = hashKey;
-	}
 
-	@Override
+    @Override
 	public String toString() {
 		return "Member{" +
 				"memberId=" + memberId +
@@ -120,7 +118,6 @@ public class Member {
 				", startDate=" + startDate +
 				", expiryDate=" + expiryDate +
 				", status='" + status + '\'' +
-				", trainerId='" + hashKey + '\'' +
 				'}';
 	}
 }

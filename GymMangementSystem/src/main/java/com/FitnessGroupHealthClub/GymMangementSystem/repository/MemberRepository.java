@@ -10,5 +10,4 @@ import java.util.List;
 @Repository
 public interface MemberRepository extends JpaRepository<Member,Long> {
     public Member findBymemberEmail(String memberEmail);
-    public Member findByhashKey(String hashKey);
 }
