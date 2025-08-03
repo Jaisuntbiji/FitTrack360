@@ -41,7 +41,7 @@ const MemberManagement: React.FC = () => {
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
-  const [viewImageUrl, setViewImageUrl] = useState<string | null>(null);
+  const [image, setImage] = useState<File | null>(null);
   const [emailTouched, setEmailTouched] = useState(false);
   const [userForm, setuserForm] = useState({
     userEmail: "",
@@ -58,7 +58,6 @@ const MemberManagement: React.FC = () => {
     startDate: "",
     expiryDate: "",
     status: "active" as const,
-    file: null as File | null,
   });
 
   // ✅ Fetch members on load
@@ -91,7 +90,6 @@ const MemberManagement: React.FC = () => {
     const [year, month, day] = dataOnly[0].split("-");
     return `${day}-${month}-${year}`; // Convert to DD-MM-YYYY
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -105,17 +103,14 @@ const MemberManagement: React.FC = () => {
           ...userForm,
         });
       } else {
-        // await axios.post("http://localhost:8080/api/addMember", formData);
-
         const data = new FormData();
         data.append(
           "member",
           new Blob([JSON.stringify(formData)], { type: "application/json" })
         );
-        if (formData.file) {
-          data.append("file", formData.file);
+        if (image != null) {
+          data.append("imageFile", image);
         }
-
         await axios.post("http://localhost:8080/api/addMember", data, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -161,9 +156,9 @@ const MemberManagement: React.FC = () => {
       memberShipType: "",
       startDate: "",
       expiryDate: "",
-      file: null,
       status: "active",
     });
+    setImage(null);
     setEditingMember(null);
     setIsModalOpen(false);
     setEmailAvailable(false);
@@ -347,42 +342,6 @@ const MemberManagement: React.FC = () => {
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
-                      {member.memberEmail && (
-                        <button
-                          onClick={() =>
-                            setViewImageUrl(
-                              `http://localhost:8080/api/viewImage/${member.memberEmail}`
-                            )
-                          }
-                          className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 rounded"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      )}
-                      {viewImageUrl && (
-                        <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center">
-                          <div className="bg-white p-4 rounded-xl shadow-xl max-w-md w-full relative">
-                            <h2 className="text-lg font-semibold mb-2">
-                              Member Image
-                            </h2>
-                            <img
-                              src={viewImageUrl}
-                              alt="Member"
-                              className="w-full h-auto rounded"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src =
-                                  "/placeholder.jpg";
-                              }}
-                            />
-                            <button
-                              onClick={() => setViewImageUrl(null)}
-                              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </td>
                 </tr>
@@ -478,17 +437,6 @@ const MemberManagement: React.FC = () => {
                 placeholder="Phone"
                 className="w-full border rounded px-3 py-2"
               />
-              <input
-                type="file"
-                accept=".jpg,.jpeg,.png"
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    file: e.target.files?.[0] || null,
-                  })
-                }
-                className="w-full border rounded px-3 py-2"
-              />
               <select
                 value={formData.memberShipType}
                 onChange={(e) =>
@@ -529,6 +477,22 @@ const MemberManagement: React.FC = () => {
                 <option value="expired">Expired</option>
                 <option value="suspended">Suspended</option>
               </select>
+
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png"
+                // onChange={(e) =>
+                //   setFormData({
+                //     ...formData,
+                //     file: e.target.files?.[0] || null,
+                //   })
+                // }
+                onChange={(e) => {
+                  setImage(e.target.files?.[0] || null);
+                }}
+                // onChange={handleImageChange}
+                className="w-full border rounded px-3 py-2"
+              />
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"

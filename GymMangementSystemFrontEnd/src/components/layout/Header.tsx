@@ -2,12 +2,29 @@ import React from "react";
 import { Bell, Search, LogOut, User } from "lucide-react";
 import { User as UserType } from "../../contexts/AuthContext";
 
+import { useState, useEffect } from "react";
+import axios from "axios";
+
 interface HeaderProps {
   user: UserType;
   onLogout: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
+  const [image, setImage] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    fetchImage();
+  }, []);
+
+  const fetchImage = async () => {
+    const response = await axios.get(
+      `http://localhost:8080/api/fechImage/${user.userEmail}/image`
+    );
+    setImage(response.data); // Already a Base64 string
+  };
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="flex items-center justify-between px-6 py-4">
@@ -32,7 +49,40 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
 
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-white" />
+              <div
+                className="w-10 h-10 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center cursor-pointer"
+                onClick={() => setShowModal(true)}
+              >
+                {image ? (
+                  <img
+                    src={`data:image/jpeg;base64,${image}`}
+                    alt="User Avatar"
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <User className="w-6 h-6 text-white" />
+                )}
+              </div>
+
+              {showModal && (
+                <div
+                  className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+                  onClick={() => setShowModal(false)}
+                >
+                  {image ? (
+                    <img
+                      src={`data:image/jpeg;base64,${image}`}
+                      alt="Large Avatar"
+                      className="max-w-xs max-h-xs rounded-full shadow-lg bg-transparent"
+                      onClick={(e) => e.stopPropagation()} // prevent close when clicking the image
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center cursor-pointer">
+                      <User className="max-w-xs max-h-xs rounded-full shadow-lg bg-transparent" />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="hidden md:block">
               <p className="text-sm font-medium text-gray-900">

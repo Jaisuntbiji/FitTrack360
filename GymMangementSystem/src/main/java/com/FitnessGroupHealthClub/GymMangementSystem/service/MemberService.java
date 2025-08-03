@@ -5,8 +5,6 @@ import com.FitnessGroupHealthClub.GymMangementSystem.repository.MemberRepository
 import com.FitnessGroupHealthClub.GymMangementSystem.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,9 +15,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.Date;
+import java.util.Base64;
 import java.util.List;
-
-import static com.FitnessGroupHealthClub.GymMangementSystem.service.SHA256Hasher.getSHA256Hash;
 
 
 @Service
@@ -49,13 +46,12 @@ public class MemberService {
 
     public boolean addMember(Member member, MultipartFile file) {
         try {
-            if (file != null) {
-                String filePath = saveImage(file);
-                member.setImagePath(filePath);
-            }
+            member.setImageName(file.getOriginalFilename());
+            member.setImageType(file.getContentType());
+            member.setImageDate(file.getBytes());
             memberRepository.save(member);
             return true;
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
@@ -113,14 +109,9 @@ public class MemberService {
 
         return filePath.toString();
     }
-    public String getImageFilePathByEmail(String email) {
-        Member member = memberRepository.findBymemberEmail(email);
-        if (member != null && member.getImagePath() != null) {
-            Path path = Paths.get(member.getImagePath());
-            if (Files.exists(path)) {
-                return member.getImagePath();
-            }
-        }
-        return null;
+
+    public String getImage(String memberEmail) {
+        Member member = memberRepository.findBymemberEmail(memberEmail);
+        return Base64.getEncoder().encodeToString(member.getImageDate());
     }
 }

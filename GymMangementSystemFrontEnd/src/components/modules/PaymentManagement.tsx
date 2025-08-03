@@ -192,9 +192,9 @@ const PaymentManagement: React.FC = () => {
     }
   };
 
-  const markAsPaid = (paymentId: number) => {
-    const rep = axios.post(`http://localhost:8080/api/markPaid/${paymentId}`);
-    console.log(rep);
+  const markAsPaid = async (paymentId: number) => {
+    await axios.post(`http://localhost:8080/api/markPaid/${paymentId}`);
+    fetchPayments();
   };
 
   const filteredPayments = payments.filter((payment) => {

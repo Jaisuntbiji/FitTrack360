@@ -1,16 +1,12 @@
 package com.FitnessGroupHealthClub.GymMangementSystem.model;
 
 //import java.sql.Date;
-import java.util.Date;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
+
+import java.util.Date;
 
 @Entity
 @Table(name = "member")
@@ -35,9 +31,13 @@ public class Member {
 	@Setter
     @Column(name ="member_status")
 	private String status;
-
-	@Column(name = "member_image_path")
-	private String imagePath;
+	@Column(name = "member_imageName")
+	private String imageName;
+	@Column(name = "member_imageType")
+	private String imageType;
+	@Lob
+	@Column(name = "member_imageData", columnDefinition = "LONGBLOB")
+	private byte[] imageDate;
 
 	public long getMemberId() {
 		return memberId;
@@ -103,11 +103,31 @@ public class Member {
 		this.status = status;
 	}
 
-	public String getImagePath() { return imagePath; }
-	public void setImagePath(String imagePath) { this.imagePath = imagePath; }
+	public String getImageType() {
+		return imageType;
+	}
 
+	public void setImageType(String imageType) {
+		this.imageType = imageType;
+	}
 
-    @Override
+	public String getImageName() {
+		return imageName;
+	}
+
+	public void setImageName(String imageName) {
+		this.imageName = imageName;
+	}
+
+	public byte[] getImageDate() {
+		return imageDate;
+	}
+
+	public void setImageDate(byte[] imageDate) {
+		this.imageDate = imageDate;
+	}
+
+	@Override
 	public String toString() {
 		return "Member{" +
 				"memberId=" + memberId +

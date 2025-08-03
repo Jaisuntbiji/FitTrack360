@@ -25,17 +25,10 @@ public class MemberController {
     @Autowired
     MemberService memberService;
 
-
-
-
-
     @PostMapping("/addMember")
-    public ResponseEntity<String> addMember(
-            @RequestPart("member") Member member,
-            @RequestPart(value = "file", required = false) MultipartFile file
-    ) {
+    public ResponseEntity<String> addMember(@RequestPart Member member, @RequestPart MultipartFile imageFile) {
         try {
-            memberService.addMember(member, file);
+            memberService.addMember(member, imageFile);
             return new ResponseEntity<>("Member added successfully", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Failed to add member: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -84,25 +77,8 @@ public class MemberController {
         return memberService.getExpiedMember();
     }
 
-    @GetMapping("/viewImage/{email}")
-    public ResponseEntity<byte[]> viewImage(@PathVariable String email) {
-        try {
-            String imagePath = memberService.getImageFilePathByEmail(email);
-
-            if (imagePath == null) {
-                return ResponseEntity.notFound().build();
-            }
-
-            Path path = Paths.get(imagePath);
-            byte[] imageBytes = Files.readAllBytes(path);
-            String contentType = Files.probeContentType(path);
-
-            return ResponseEntity.ok()
-                    .header("Content-Type", contentType)
-                    .body(imageBytes);
-
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    @GetMapping("/fechImage/{memberEmail}/image")
+    public ResponseEntity<String> getImage(@PathVariable String memberEmail) {
+        return new ResponseEntity<String>(memberService.getImage(memberEmail),HttpStatus.OK);
     }
 }
