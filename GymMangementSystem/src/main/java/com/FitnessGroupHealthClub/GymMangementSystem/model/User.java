@@ -19,19 +19,15 @@ public class User {
 	private String userEmail;
 	@Column(name = "user_role")
 	private String userRole;
-	@Column(name = "user_avatar")
-	private String userAvatar;
 
 
-	public User(long userId, String userName, String userPassword, String userEmail, String userRole,
-			String userAvatar) {
+	public User(long userId, String userName, String userPassword, String userEmail, String userRole) {
 		super();
 		this.userId = userId;
 		this.userName = userName;
 		this.userPassword = userPassword;
 		this.userEmail = userEmail;
 		this.userRole = userRole;
-		this.userAvatar = userAvatar;
 	}
 	public User() {}
 	public long getUserId() {
@@ -61,12 +57,6 @@ public class User {
 	public void setUserRole(String userRole) {
 		this.userRole = userRole;
 	}
-	public String getUserAvatar() {
-		return userAvatar;
-	}
-	public void setUserAvatar(String userAvatar) {
-		this.userAvatar = userAvatar;
-	}
 	@Override
 	public String toString() {
 		return "User{" +
@@ -75,7 +65,7 @@ public class User {
 				", userPassword='" + userPassword + '\'' +
 				", userEmail='" + userEmail + '\'' +
 				", userRole='" + userRole + '\'' +
-				", userAvatar='" + userAvatar + '\'' +
+
 				'}';
 	}
 }

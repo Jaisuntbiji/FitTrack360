@@ -48,7 +48,7 @@ public class AdminOverViewService {
             }
         }
 
-        adminOverView.setTotalMembers(trainerRepository.findAll().size()+1);
+        adminOverView.setTotalMembers(memberRepository.findAll().size());
         adminOverView.setActiveTrainers(totalActiveTrainers);
         adminOverView.setTotalClass(0);
         adminOverView.setMonthlyRevenue(mouthlyRevenue);
